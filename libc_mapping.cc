@@ -114,6 +114,7 @@
 #include <ctime>
 
 #include "sloader_dl.h"
+#include "dyn_loader.h"
 
 extern thread_local unsigned long sloader_dummy_to_secure_tls_space[];
 extern unsigned long sloader_tls_offset;
@@ -181,7 +182,14 @@ void sloader_libc_start_main(int (*main)(int, char**, char**), int argc, char** 
     // We need __libc_stack_end
    
     // TODO: Passing __environ to main is not correct.
-    exit(main(argc, argv, __environ));
+    myExit(main(argc, argv, __environ));
+}
+
+int sloader_fclose (FILE *__stream){
+    if (__stream == stdout || __stream == stdin || __stream == stderr) {
+        return 0;
+    }
+    return fclose(__stream);
 }
 
 #define DEFINE_DUMMY_FUN(name) \
@@ -553,7 +561,7 @@ std::map<std::string, Elf64_Addr> sloader_libc_map = {
     {"fchmodat", reinterpret_cast<Elf64_Addr>(&fchmodat)},
     {"fchown", reinterpret_cast<Elf64_Addr>(&fchown)},
     {"fchownat", reinterpret_cast<Elf64_Addr>(&fchownat)},
-    {"fclose", reinterpret_cast<Elf64_Addr>(&fclose)},
+    {"fclose", reinterpret_cast<Elf64_Addr>(&sloader_fclose)},
     {"fcntl", reinterpret_cast<Elf64_Addr>(&fcntl)},
     {"fcntl64", reinterpret_cast<Elf64_Addr>(&fcntl64)},
     {"fdatasync", reinterpret_cast<Elf64_Addr>(&fdatasync)},

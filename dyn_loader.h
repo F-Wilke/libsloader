@@ -13,6 +13,9 @@
 #include <tuple>
 
 #include "utils.h"
+#include <setjmp.h>
+
+extern void myExit(int status);
 
 class ELFBinary {
 public:
@@ -83,25 +86,30 @@ private:
 
 class DynLoader {
 public:
+    
+    DynLoader(const std::filesystem::path& main_path);
+    DynLoader(const std::filesystem::path& main_path, Elf64_Addr next_base_addr_);
     DynLoader(const std::filesystem::path& main_path, const std::vector<std::string>& args, const std::vector<std::string>& envs);
+    DynLoader(const std::filesystem::path& main_path, const std::vector<std::string>& args, const std::vector<std::string>& envs, Elf64_Addr next_base_addr_);
+    ~DynLoader();
     // The main function
     void Run();
 
     void LoadDependingLibs(const std::filesystem::path& root_path);
     void Relocate();
+    void Execute(std::vector<std::string> args, std::vector<std::string> envs);
     std::optional<std::pair<size_t, size_t>> SearchSym(const std::string& name, bool skip_main);
     std::vector<ELFBinary> binaries_;
+    Elf64_Addr next_base_addr_;
 
 private:
     std::filesystem::path main_path_;
     std::shared_ptr<std::ofstream> map_file_;
     const std::vector<std::string> args_;
     const std::vector<std::string> envs_;
-    Elf64_Addr next_base_addr_;
     std::set<std::string> loaded_;
     std::map<std::filesystem::path, bool> relocated_;
 
-    void Execute(std::vector<std::string> args, std::vector<std::string> envs);
     void __attribute__((noinline)) ExecuteCore(uint64_t* stack, size_t stack_num, uint64_t entry);
     Elf64_Addr TLSSymOffset(const std::string& name);
 };

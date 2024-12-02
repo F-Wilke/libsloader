@@ -22,6 +22,12 @@ add_definitions(-DC10_USE_GLOG=1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/raw_write)
 
 add_library(tls_secure tls_secure.cc)
+target_compile_options(tls_secure PRIVATE -fPIC)
+
+# Generate object files for sloader sources
+add_library(sloader_objects OBJECT sloader.cc dyn_loader.cc libc_mapping.cc sloader_dl.cc utils.cc)
+target_compile_options(sloader_objects PRIVATE -Wall -Werror -fPIC)
+target_include_directories(sloader_objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(CUSTOM_LIBC_PATH)
   execute_process(
@@ -72,6 +78,7 @@ else()
   target_compile_options(sloader PUBLIC -Wall -Werror)
   target_link_options(sloader PUBLIC -static -Wl,-verbose -T
                       ${CMAKE_CURRENT_SOURCE_DIR}/sloader_static.map)
+
 endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake

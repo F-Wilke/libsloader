@@ -14,6 +14,8 @@ public:
 };
 inline nullstream null;
 
+std::ostream logstream = std::ostream(nullptr);
+
 #define CHECK(x)                                          \
     if (!(x)) {                                           \
         std::cerr << "CHECK failed: " << #x << std::endl; \
@@ -27,10 +29,10 @@ inline nullstream null;
 #define CHECK_LE(x, y) CHECK((x) <= (y))
 /* Replace null with std::cout to enable logging */
 #define LOG(loglevel)                                                   \
-    null << #loglevel << " " << __FILE__ << ":" << __LINE__ << " " \
-              << " "
+    logstream << std::endl << #loglevel << " " << __FILE__ << ":" << __LINE__ << " " \
+              << ""
 
-#define LOG_KEY_VALUE(key, value) " " << key << "=" << value
+#define LOG_KEY_VALUE(key, value) " " << key << "=" << value << "\n"
 #define LOG_KEY(key) LOG_KEY_VALUE(#key, key)
 #define LOG_64BITS(key) LOG_KEY_VALUE(#key, HexString(key, 16))
 #define LOG_32BITS(key) LOG_KEY_VALUE(#key, HexString(key, 8))

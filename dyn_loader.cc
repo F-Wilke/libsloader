@@ -18,11 +18,44 @@
 #include "libc_mapping.h"
 #include "utils.h"
 
+#include <iostream>
+#include <execinfo.h>
+#include <cstdlib> 
+
 extern thread_local unsigned long sloader_dummy_to_secure_tls_space[];
 extern unsigned long sloader_tls_offset;
 void write_sloader_dummy_to_secure_tls_space();
 
+jmp_buf jumpBuffer;
+int exitcode;
+
+void myExit(int status) {
+    std::cout << "MyExit called" << std::endl;
+    exitcode = status;
+    longjmp(jumpBuffer, 1);
+}
+
 namespace {
+
+
+void printStackTrace() {
+    constexpr int MAX_FRAMES = 64;
+    void* callstack[MAX_FRAMES];
+    int frames = backtrace(callstack, MAX_FRAMES);
+    char** symbols = backtrace_symbols(callstack, frames);
+
+    if (symbols == nullptr) {
+        std::cerr << "Failed to generate stack trace." << std::endl;
+        return;
+    }
+
+    std::cerr << "Stack trace:" << std::endl;
+    for (int i = 0; i < frames; ++i) {
+        std::cerr << symbols[i] << std::endl;
+    }
+
+    free(symbols); // Clean up memory allocated by backtrace_symbols
+}
 
 void read_ldsoconf_dfs(std::vector<std::filesystem::path>& res, const std::string& filename) {
     std::ifstream f;
@@ -345,17 +378,36 @@ void DynLoader::LoadDependingLibs(const std::filesystem::path& root_path) {
         }
     }
 }
+DynLoader::DynLoader(const std::filesystem::path& main_path) : DynLoader(main_path, 0x140'0000) {};
+DynLoader::DynLoader(const std::filesystem::path& main_path, const std::vector<std::string>& args, const std::vector<std::string>& envs) : DynLoader(main_path, args, envs,  0x140'0000) {};
 
-DynLoader::DynLoader(const std::filesystem::path& main_path, const std::vector<std::string>& args, const std::vector<std::string>& envs)
-    : main_path_(main_path), args_(args), envs_(envs), next_base_addr_(0x140'0000) {
+DynLoader::DynLoader(const std::filesystem::path& main_path, Elf64_Addr next_base_addr_)
+    : next_base_addr_(next_base_addr_), main_path_(main_path), args_({}), envs_({}) {
     map_file_ =
         std::make_shared<std::ofstream>(std::getenv("SLOADER_MAP_FILE") == nullptr ? "/tmp/sloader_map" : std::getenv("SLOADER_MAP_FILE"));
 }
 
+DynLoader::DynLoader(const std::filesystem::path& main_path, const std::vector<std::string>& args, const std::vector<std::string>& envs, Elf64_Addr next_base_addr_)
+    : next_base_addr_(next_base_addr_), main_path_(main_path), args_(args), envs_(envs) {
+    map_file_ =
+        std::make_shared<std::ofstream>(std::getenv("SLOADER_MAP_FILE") == nullptr ? "/tmp/sloader_map" : std::getenv("SLOADER_MAP_FILE"));
+}
+
+DynLoader::~DynLoader() {
+    std::cout << "destructing DynLoader" << std::endl;
+    printStackTrace();
+ }
+
 void DynLoader::Run() {
     LoadDependingLibs(main_path_);
     Relocate();
-    Execute(args_, envs_);
+
+    exitcode = 0;
+    if (setjmp(jumpBuffer) == 0) {
+        Execute(args_, envs_);
+    }
+
+    LOG(INFO) << "Returned from running, exit code: " << exitcode << std::endl;
 }
 
 // To assign variables of stack, stack_num and entry to %rdi, %rsi and %rdx
@@ -627,7 +679,11 @@ void DynLoader::Relocate() {
                     const auto opt = SearchSym(name);
                     Elf64_Addr sym_addr;
 
-                    if (libc_mapping::sloader_libc_map.find(name) != libc_mapping::sloader_libc_map.end()) {
+                    if (strcmp(name.c_str(), "exit") == 0) {
+                        sym_addr = reinterpret_cast<Elf64_Addr>(&myExit);
+                        LOG(INFO) << "linking to myExit: sym_addr: " << sym_addr;
+                    }
+                    else if (libc_mapping::sloader_libc_map.find(name) != libc_mapping::sloader_libc_map.end()) {
                         sym_addr = libc_mapping::sloader_libc_map[name];
                     } else if (opt) {
                         const auto [bin_index, sym_index] = opt.value();

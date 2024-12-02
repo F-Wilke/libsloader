@@ -19,6 +19,9 @@
 #include "dyn_loader.h"
 #include "exec_loader.h"
 #include "utils.h"
+#include "sloader.h"
+
+void write_sloader_dummy_to_secure_tls_space();
 
 Elf64_Half GetEType(const std::filesystem::path& filepath) {
     int fd = open(filepath.c_str(), O_RDONLY);
@@ -37,9 +40,13 @@ Elf64_Half GetEType(const std::filesystem::path& filepath) {
     return ehdr->e_type;
 }
 
-int main(int argc, char* const argv[], char** envp) {
+int run_main(int argc, char* const argv[], char** envp) {
     std::string argv0 = argv[1];
     std::filesystem::path fullpath;
+
+    for (int i = 0; i < argc; i++) {
+      printf("argv[%d] = %s\n", i, argv[i]);
+    }
 
     if (argv0[0] == '.' || argv0.find("/") != std::string::npos) {
         fullpath = std::filesystem::path(argv0);
@@ -70,9 +77,21 @@ int main(int argc, char* const argv[], char** envp) {
     Elf64_Half etype = GetEType(fullpath);
     if (etype == ET_DYN || etype == ET_EXEC) {
         InitializeDynLoader(fullpath, envs, args);
+        
         GetDynLoader()->Run();
     } else {
         LOG(FATAL) << "Unsupported etype = " << LOG_KEY(etype);
         std::abort();
     }
+
+    return 0;
+}
+
+
+
+
+
+
+int main(int argc, char* const argv[], char** envp) {
+    return run_main(argc, argv, envp);
 }

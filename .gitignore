@@ -2,6 +2,7 @@ glibc/*
 glibc-install/*
 glibc-build/*
 build/*
+build*
 .cache/*
 *.svg
 *_perf.data

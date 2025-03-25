@@ -9,10 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/sloader", // Adjust if the output binary has a different name
-            "args": ["/usr/bin/jq"], // Add command-line arguments if needed
+            "args": ["/home/FiliagoDev/kernelModTest/linux-kernel-module/elfGenTest/linkedToExecutable/main"], // Add command-line arguments if needed
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "SLOADER_LIBRARY_PATH", "value": "/home/FiliagoDev/kernelModTest/linux-kernel-module/elfGenTest"}],
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb", // Adjust if using a different debugger

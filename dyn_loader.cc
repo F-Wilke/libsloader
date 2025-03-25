@@ -30,7 +30,7 @@ jmp_buf jumpBuffer;
 int exitcode;
 
 void myExit(int status) {
-    std::cout << "MyExit called" << std::endl;
+    LOG(INFO) << "MyExit called" << std::endl;
     exitcode = status;
     longjmp(jumpBuffer, 1);
 }
@@ -45,11 +45,11 @@ void printStackTrace() {
     char** symbols = backtrace_symbols(callstack, frames);
 
     if (symbols == nullptr) {
-        std::cerr << "Failed to generate stack trace." << std::endl;
+        LOG(INFO) << "Failed to generate stack trace.";
         return;
     }
 
-    std::cerr << "Stack trace:" << std::endl;
+    LOG(INFO) << "Stack trace:" << std::endl;
     for (int i = 0; i < frames; ++i) {
         std::cerr << symbols[i] << std::endl;
     }
@@ -394,7 +394,7 @@ DynLoader::DynLoader(const std::filesystem::path& main_path, const std::vector<s
 }
 
 DynLoader::~DynLoader() {
-    std::cout << "destructing DynLoader" << std::endl;
+    LOG(INFO) << "destructing DynLoader";
     printStackTrace();
  }
 

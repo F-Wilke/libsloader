@@ -38,7 +38,7 @@
         {
             "label": "preparedFolders",
             "type": "shell",
-            "command": "rm -r build && mkdir build",
+            "command": "rm -fr build && mkdir build",
             "args": [],
             "group": {
                 "kind": "build",

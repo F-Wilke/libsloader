@@ -23,6 +23,8 @@
 However, `sloader` depends on `ld-linux.so` because I cannot statically link `sloader` now. 
 
 ## How to build and use
+required packages: ninja-build, cmake, libcap-devel, gcc, g++, nasm, glibc-static, libstdc++-static
+
 ```
 $ git clone https://github.com/akawashiro/sloader.git
 $ cd sloader

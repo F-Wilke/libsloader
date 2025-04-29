@@ -294,7 +294,10 @@ void ELFBinary::ParseDynamic() {
 
 const Elf64_Addr ELFBinary::GetSymbolAddr(const size_t symbol_index) {
     CHECK_LT(symbol_index, symtabs().size());
-    return symtabs()[symbol_index].st_value + base_addr();
+    if (this->path_ == "/proc/libkallsyms.so")
+        return symtabs()[symbol_index].st_value;
+    else
+        return symtabs()[symbol_index].st_value + base_addr();
 }
 
 std::filesystem::path FindLibrary(std::string library_name, std::optional<std::filesystem::path> runpath,
@@ -310,7 +313,18 @@ std::filesystem::path FindLibrary(std::string library_name, std::optional<std::f
 
     std::string sloader_library_path(std::getenv("SLOADER_LIBRARY_PATH") == nullptr ? "" : std::getenv("SLOADER_LIBRARY_PATH"));
     if (!sloader_library_path.empty()) {
+        //split by ':'; add to library_directory
+        std::string delimiter = ":";
+        size_t pos = 0;
+        while ((pos = sloader_library_path.find(delimiter)) != std::string::npos) {
+            std::string token = sloader_library_path.substr(0, pos);
+            library_directory.emplace_back(token);
+            sloader_library_path.erase(0, pos + delimiter.length());
+            LOG(INFO) << "added library path: " << token;
+        }
         library_directory.emplace_back(sloader_library_path);
+        LOG(INFO) << "added library path: " << sloader_library_path;
+
     }
 
     if (runpath) {

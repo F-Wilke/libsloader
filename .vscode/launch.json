@@ -9,10 +9,14 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/sloader", // Adjust if the output binary has a different name
-            "args": ["/home/FiliagoDev/Symbi-OS/libkallsyms/elfGenTest/linkedToExecutable/main"], // Add command-line arguments if needed
+            // "args": ["/home/FiliagoDev/Symbi-OS/libkallsyms/elfGenTest/linkedToExecutable/main"], // Add command-line arguments if needed
+            "args": ["/home/FiliagoDev/Symbi-OS/Tools/examples/getppid/getppid"], // Add command-line arguments if needed
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "SLOADER_LIBRARY_PATH", "value": "/home/FiliagoDev/Symbi-OS/libkallsyms/elfGenTest/linkedToExecutable"}], // Adjust if needed
+            "environment": [
+                // {"name": "SLOADER_LIBRARY_PATH", "value": "/home/FiliagoDev/Symbi-OS/libkallsyms/"}
+                {"name": "SLOADER_LIBRARY_PATH", "value": "/proc/:/home/FiliagoDev/Symbi-OS/Symlib/dynam_build/"}
+                ], // Adjust if needed
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb", // Adjust if using a different debugger
@@ -20,7 +24,7 @@
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
+                    "ignoreFailures": false
                 },
                 {
                     "description": "Set Disassembly Flavor to Intel",

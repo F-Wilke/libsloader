@@ -3,14 +3,14 @@ project(sloader)
 
 enable_testing()
 set(CMAKE_CXX_STANDARD 20)
-# if(NOT CMAKE_BUILD_TYPE)
-#   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-# endif()
-
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+
+# if(NOT CMAKE_BUILD_TYPE)
+#   set(CMAKE_BUILD_TYPE "Debug")
+# endif()
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
 
 set(CUSTOM_LIBC_PATH CACHE PATH "")

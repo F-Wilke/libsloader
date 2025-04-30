@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/sloader", // Adjust if the output binary has a different name
             // "args": ["/home/FiliagoDev/Symbi-OS/libkallsyms/elfGenTest/linkedToExecutable/main"], // Add command-line arguments if needed
-            "args": ["/home/FiliagoDev/Symbi-OS/Tools/examples/getppid/getppid"], // Add command-line arguments if needed
+            "args": ["/home/FiliagoDev/Symbi-OS/Tools/examples/getppid/getppid", "5"], // Add command-line arguments if needed
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

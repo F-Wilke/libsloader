@@ -105,7 +105,14 @@ ELFBinary::ELFBinary(const std::filesystem::path path) : path_(path) {
 
     size_t mapped_size = (size + 0xfff) & ~0xfff;
 
-    file_base_addr_ = (char*)mmap(NULL, mapped_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
+    //exec not allowed for /proc/ filesystem
+    if (path_.string().substr(0,5) == "/proc") {
+        file_base_addr_ = (char*)mmap(NULL, mapped_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    }
+    else {
+        file_base_addr_ = (char*)mmap(NULL, mapped_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
+    }
+    
     CHECK(file_base_addr_ != MAP_FAILED);
 
     ehdr_ = *reinterpret_cast<Elf64_Ehdr*>(file_base_addr_);

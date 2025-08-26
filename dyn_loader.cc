@@ -285,11 +285,16 @@ void ELFBinary::ParseDynamic() {
         Elf64_Sym* s = symtab_;
         symtabs_.emplace_back(*s);
         s++;
+        unsigned int counter = 0;
 
         // TODO: This is a hack. Listing up all symbols is always difficult.
         while (0 <= s->st_name && s->st_name < strsz_) {
             symtabs_.emplace_back(*s);
             s++;
+            counter++;
+            if (counter % 5000 == 0) {
+                LOG(INFO) << "Parsed " << counter << " symbols";
+            }
         }
 
         for (const auto& s : symtabs_) {
@@ -692,6 +697,7 @@ void DynLoader::Relocate() {
             Elf64_Sym s = bin.symtabs()[ELF64_R_SYM(r.r_info)];
             std::string name = s.st_name + bin.strtab();
             LOG(INFO) << ShowRela(r) << LOG_KEY(name);
+            //RELA: relocation with addend!
 
             switch (ELF64_R_TYPE(r.r_info)) {
                 case R_X86_64_GLOB_DAT:
